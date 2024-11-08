@@ -8,33 +8,62 @@ const uri = process.env.MONGODB_URI
 const options = {}
 
 let indexesCreated = false
+
 async function createIndexes(client: MongoClient) {
-  if (indexesCreated) return client
-  const db = client.db("dev")
-  await Promise.all([db.collection("users").createIndexes([{ key: { email: 1 }, unique: true }])])
-  indexesCreated = true
+  console.log("Checking if indexes are created...")
+
+  if (indexesCreated) {
+    console.log("Indexes already created, skipping index creation.")
+    return client
+  }
+
+  try {
+    const db = client.db("dev")
+    console.log("Creating indexes for 'users' collection...")
+    await Promise.all([
+      db.collection("users").createIndexes([{ key: { email: 1 }, unique: true }])
+    ])
+    indexesCreated = true
+    console.log("Indexes created successfully.")
+  } catch (error) {
+    console.error("Error creating indexes:", error)
+    throw new Error("Failed to create indexes.")
+  }
+
   return client
 }
 
 export async function getMongoClient() {
-  /**
-   * Global is used here to maintain a cached connection across hot reloads
-   * in development. This prevents connections growing exponentiatlly
-   * during API Route usage.
-   * https://github.com/vercel/next.js/pull/17666
-   */
   if (!global._mongoClientPromise) {
+    console.log("No cached MongoDB client found. Creating a new connection...")
     const client = new MongoClient(uri)
-    console.log("Connected to MongoDB")
-    global._mongoClientPromise = client.connect().then(async (client) => await createIndexes(client))
+
+    try {
+      console.log("Connecting to MongoDB...")
+      global._mongoClientPromise = client.connect().then(async (client) => {
+        console.log("MongoDB connected successfully.")
+        return await createIndexes(client)
+      })
+    } catch (error) {
+      console.error("Error connecting to MongoDB:", error)
+      throw new Error("MongoDB connection failed.")
+    }
+  } else {
+    console.log("Using cached MongoDB client.")
   }
-  console.log("Return MongoPromise")
+
+  console.log("Returning MongoDB client promise.")
   return await global._mongoClientPromise
 }
 
 export async function getMongoDb() {
-  const mongoClient = await getMongoClient()
-
-  return mongoClient.db("dev")
-  
+  try {
+    console.log("Getting MongoDB database...")
+    const mongoClient = await getMongoClient()
+    console.log("Returning MongoDB database instance.")
+    return mongoClient.db("dev")
+  } catch (error) {
+    console.error("Error getting MongoDB database:", error)
+    throw new Error("Failed to get MongoDB database.")
+  }
 }
